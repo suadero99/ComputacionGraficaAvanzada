@@ -51,10 +51,11 @@ Shader shaderMulLighting;
 std::shared_ptr<FirstPersonCamera> camera(new FirstPersonCamera());
 
 Sphere skyboxSphere(20, 20);
+Sphere esferaPrueba1(20, 20); //número de divisiones verticales, número de divisiones horizontales
 Box boxCesped;
 Box boxWalls;
 Box boxHighway;
-Box boxLandingPad;
+Box boxLandingPad; //Para el helicóptero como pista de aterrizaje
 // Models complex instances
 Model modelRock;
 Model modelAircraft;
@@ -63,6 +64,7 @@ Model modelEclipseRearWheels;
 Model modelEclipseFrontalWheels;
 Model modelHeliChasis;
 Model modelHeliHeli;
+Model modelHeliHeli_2; //Helices
 Model modelLambo;
 Model modelLamboLeftDor;
 Model modelLamboRightDor;
@@ -81,7 +83,29 @@ Model modelDartLegoRightHand;
 Model modelDartLegoLeftLeg;
 Model modelDartLegoRightLeg;
 
-GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID; //, textureLandingPadID;
+//Buzz YogurtLight
+Model modelBuzzTorso;
+Model modelBuzzHead;
+Model modelBuzzLeftArm;
+Model modelBuzzLeftForeArm; //Antebrazo
+Model modelBuzzLeftHand;
+Model modelBuzzRightArm;
+Model modelBuzzRightForeArm;
+Model modelBuzzRightHand;
+Model modelBuzzHip;
+Model modelBuzzLeftLeg; //Pierna alta
+Model modelBuzzLeftCalf; //Pierna baja
+Model modelBuzzLeftFoot;
+Model modelBuzzRightLeg;
+Model modelBuzzRightCalf;
+Model modelBuzzRightFoot;
+Model modelBuzzLeftWing1; //ala pegada al torso
+Model modelBuzzLeftWing2; //Pegado a ala 1
+Model modelBuzzRightWing1;
+Model modelBuzzRightWing2;
+
+//Texturas
+GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
 
 GLenum types[6] = {
@@ -111,6 +135,8 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 
+glm::mat4 modelMatrixBuzz = glm::mat4(1.0f);
+
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
 bool enableCountSelected = true;
@@ -136,7 +162,7 @@ int maxNumPasosDart = 200;
 int numPasosDart = 0;
 
 // Var animate helicopter
-float rotHelHelY = 0.0;
+float rotHelHelY = 0.0, rotHelHelX_2 = 0.0;
 
 // Var animate lambo dor
 int stateDoor = 0;
@@ -186,7 +212,7 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	}
 
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(0);
+	glfwSwapInterval(0); //Refresco de pantalla al máximo permitido
 
 	glfwSetWindowSizeCallback(window, reshapeCallback);
 	glfwSetKeyCallback(window, keyCallback);
@@ -227,8 +253,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	boxHighway.init();
 	boxHighway.setShader(&shaderMulLighting);
 
-	boxLandingPad.init();
+	boxLandingPad.init(); //Pista de aterrizaje
 	boxLandingPad.setShader(&shaderMulLighting);
+
+	esferaPrueba1.init();
+	esferaPrueba1.setShader(&shaderMulLighting);
 
 	modelRock.loadModel("../models/rock/rock.obj");
 	modelRock.setShader(&shaderMulLighting);
@@ -244,10 +273,13 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelEclipseRearWheels.loadModel("../models/Eclipse/2003eclipse_rear_wheels.obj");
 	modelEclipseRearWheels.setShader(&shaderMulLighting);
 	// Helicopter
-	modelHeliChasis.loadModel("../models/Helicopter/Mi_24_chasis.obj");
+	modelHeliChasis.loadModel("../models/Helicopter/M_24_chasis2.obj");
 	modelHeliChasis.setShader(&shaderMulLighting);
 	modelHeliHeli.loadModel("../models/Helicopter/Mi_24_heli.obj");
 	modelHeliHeli.setShader(&shaderMulLighting);
+	// Helices
+	modelHeliHeli_2.loadModel("../models/Helicopter/helices2.obj");
+	modelHeliHeli_2.setShader(&shaderMulLighting);
 	// Lamborginhi
 	modelLambo.loadModel("../models/Lamborginhi_Aventador_OBJ/Lamborghini_Aventador_chasis.obj");
 	modelLambo.setShader(&shaderMulLighting);
@@ -283,6 +315,46 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelDartLegoLeftLeg.setShader(&shaderMulLighting);
 	modelDartLegoRightLeg.loadModel("../models/LegoDart/LeoDart_right_leg.obj");
 	modelDartLegoRightLeg.setShader(&shaderMulLighting);
+
+	//Buzz
+	modelBuzzTorso.loadModel("../models/buzz/buzzlightyTorso.obj");
+	modelBuzzTorso.setShader(&shaderMulLighting);
+	modelBuzzHead.loadModel("../models/buzz/buzzlightyHead.obj");
+	modelBuzzHead.setShader(&shaderMulLighting);
+	modelBuzzLeftArm.loadModel("../models/buzz/buzzlightyLeftArm.obj");
+	modelBuzzLeftArm.setShader(&shaderMulLighting);
+	modelBuzzLeftForeArm.loadModel("../models/buzz/buzzlightyLeftForearm.obj");
+	modelBuzzLeftForeArm.setShader(&shaderMulLighting);
+	modelBuzzLeftHand.loadModel("../models/buzz/buzzlightyLeftHand.obj");
+	modelBuzzLeftHand.setShader(&shaderMulLighting);
+	modelBuzzRightArm.loadModel("../models/buzz/buzzlightyRightArm.obj");
+	modelBuzzRightArm.setShader(&shaderMulLighting);
+	modelBuzzRightForeArm.loadModel("../models/buzz/buzzlightyRightForearm.obj");
+	modelBuzzRightForeArm.setShader(&shaderMulLighting);
+	modelBuzzRightHand.loadModel("../models/buzz/buzzlightyRightHand.obj");
+	modelBuzzRightHand.setShader(&shaderMulLighting);
+	modelBuzzHip.loadModel("../models/buzz/buzzlightyHip.obj");
+	modelBuzzHip.setShader(&shaderMulLighting);
+	modelBuzzLeftLeg.loadModel("../models/buzz/buzzlightyLeftThigh.obj");
+	modelBuzzLeftLeg.setShader(&shaderMulLighting);
+	modelBuzzLeftCalf.loadModel("../models/buzz/buzzlightyLeftCalf.obj");
+	modelBuzzLeftCalf.setShader(&shaderMulLighting);
+	modelBuzzLeftFoot.loadModel("../models/buzz/buzzlightyLeftFoot.obj");
+	modelBuzzLeftFoot.setShader(&shaderMulLighting);
+	modelBuzzRightLeg.loadModel("../models/buzz/buzzlightyRightThigh.obj");
+	modelBuzzRightLeg.setShader(&shaderMulLighting);
+	modelBuzzRightCalf.loadModel("../models/buzz/buzzlightyRightCalf.obj");
+	modelBuzzRightCalf.setShader(&shaderMulLighting);
+	modelBuzzRightFoot.loadModel("../models/buzz/buzzlightyRightFoot.obj");
+	modelBuzzRightFoot.setShader(&shaderMulLighting);
+	modelBuzzLeftWing1.loadModel("../models/buzz/buzzlightyLeftWing1.obj");
+	modelBuzzLeftWing1.setShader(&shaderMulLighting);
+	modelBuzzLeftWing2.loadModel("../models/buzz/buzzlightyLeftWing2.obj");
+	modelBuzzLeftWing2.setShader(&shaderMulLighting);
+	modelBuzzRightWing1.loadModel("../models/buzz/buzzlightyRightWing1.obj");
+	modelBuzzRightWing1.setShader(&shaderMulLighting);
+	modelBuzzRightWing2.loadModel("../models/buzz/buzzlightyRightWing2.obj");
+	modelBuzzRightWing2.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -442,6 +514,31 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 		std::cout << "Failed to load texture" << std::endl;
 	// Libera la memoria de la textura
 	textureHighway.freeImage(bitmap);
+
+	// Cargar la textura del landingPad (Pista de aterrizaje)
+	Texture textureLandingpad("../Textures/landingPad.jpg");
+	//Cargar la textura en un mapa de bits
+	bitmap = textureLandingpad.loadImage();
+	//Convertir mapa de bits en un arreglo unidimensional
+	data = textureLandingpad.convertToData(bitmap, imageWidth, imageHeight);
+	//Generar la textura con OpenGL
+	glGenTextures(1, &textureLandingPadID);
+	//Enlazar
+	glBindTexture(GL_TEXTURE_2D, textureLandingPadID);
+	//Configuración de textura
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); //Wrapping en eje S horizontal para que se repita la textura si aumenta la escala
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); //Wrapping en eje T vertical para
+		//que se repita la textura si aumenta la escala, CLAMP_TO_EDGE es para que tome el color del borde de la textura
+		//y lo arrastra al final del mapeo
+	//Configuración de filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); //Si la imagen es muy chica
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); //Si la imagen es muy grande
+	if (data) { //Si se cargan los datos a la tarjeta gráfica
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imageWidth, imageHeight,
+			0, GL_BGRA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	textureLandingpad.freeImage(bitmap);
 }
 
 void destroy() {
@@ -457,6 +554,7 @@ void destroy() {
 
 	// Basic objects Delete
 	skyboxSphere.destroy();
+	esferaPrueba1.destroy(); //Destruimos objeto para liberar memoria
 	boxCesped.destroy();
 	boxWalls.destroy();
 	boxHighway.destroy();
@@ -473,11 +571,34 @@ void destroy() {
 	modelDartLegoRightArm.destroy();
 	modelDartLegoRightHand.destroy();
 	modelDartLegoRightLeg.destroy();
+
+	//Buzz
+	modelBuzzTorso.destroy();
+	modelBuzzHead.destroy();
+	modelBuzzLeftArm.destroy();
+	modelBuzzLeftForeArm.destroy();
+	modelBuzzLeftHand.destroy();
+	modelBuzzRightArm.destroy();
+	modelBuzzRightForeArm.destroy();
+	modelBuzzRightHand.destroy();
+	modelBuzzHip.destroy();
+	modelBuzzLeftLeg.destroy();
+	modelBuzzLeftCalf.destroy();
+	modelBuzzLeftFoot.destroy();
+	modelBuzzRightLeg.destroy();
+	modelBuzzRightCalf.destroy();
+	modelBuzzRightFoot.destroy();
+	modelBuzzLeftWing1.destroy();
+	modelBuzzLeftWing2.destroy();
+	modelBuzzRightWing1.destroy();
+	modelBuzzRightWing2.destroy();
+
 	modelEclipseChasis.destroy();
 	modelEclipseFrontalWheels.destroy();
 	modelEclipseRearWheels.destroy();
 	modelHeliChasis.destroy();
 	modelHeliHeli.destroy();
+	modelHeliHeli_2.destroy();
 	modelLambo.destroy();
 	modelLamboFrontLeftWheel.destroy();
 	modelLamboFrontRightWheel.destroy();
@@ -493,6 +614,7 @@ void destroy() {
 	glDeleteTextures(1, &textureWallID);
 	glDeleteTextures(1, &textureWindowID);
 	glDeleteTextures(1, &textureHighwayID);
+	glDeleteTextures(1, &textureLandingPadID);
 
 	// Cube Maps Delete
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -684,23 +806,23 @@ void applicationLoop() {
 
 	while (psi) {
 		currTime = TimeManager::Instance().GetTime();
-		if(currTime - lastTime < 0.016666667){
+		if(currTime - lastTime < 0.016666667){ //Tiempo de un frame en 60fps: 1/60
 			glfwPollEvents();
 			continue;
 		}
 		lastTime = currTime;
 		TimeManager::Instance().CalculateFrameRate(true);
 		deltaTime = TimeManager::Instance().DeltaTime;
-		psi = processInput(true);
+		psi = processInput(true); //Función para procesar entradas
 
 		// Variables donde se guardan las matrices de cada articulacion por 1 frame
 		std::vector<float> matrixDartJoints;
 		std::vector<glm::mat4> matrixDart;
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //Por cad frame, limpiar color y profundidad
 
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
-		glm::mat4 view = camera->getViewMatrix();
+		glm::mat4 view = camera->getViewMatrix();  //camera es un apuntador
 
 		// Settea la matriz de vista y projection al shader con solo color
 		shader.setMatrix4("projection", 1, false, glm::value_ptr(projection));
@@ -828,6 +950,32 @@ void applicationLoop() {
 		boxHighway.setOrientation(glm::vec3(0.0, 0.0, 0.0));
 		boxHighway.render();
 
+		// LandingPad
+		boxLandingPad.setScale(glm::vec3(10.0, 0.05, 10.0));
+		boxLandingPad.setPosition(glm::vec3(5.0f, 0.05, -5.0));
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureLandingPadID);
+		shaderMulLighting.setVectorFloat2("scaleUV",
+			glm::value_ptr(glm::vec2(2.0, 2.0))); //Para repetir textura //variables uniform cambian en tiempo de ejecución
+		boxLandingPad.render();
+		shaderMulLighting.setVectorFloat2("scaleUV",
+			glm::value_ptr(glm::vec2(1.0, 1.0)));
+
+		// Esfera de prueba
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureWindowID);
+		esferaPrueba1.setPosition(glm::vec3(5.0, 1.0, -5.0)); //5 a la derecha, 1 arriba, 5 hacia atrás (z hacia nosotros es positivo)
+		esferaPrueba1.setScale(glm::vec3(1.0, 1.0, 1.0));
+		//esferaPrueba1.enableWireMode(); //Ponerlo en forma de malla
+		esferaPrueba1.render(); //Dibujar en pantalla
+
+		glActiveTexture(GL_TEXTURE0); //Siempre poner esto para evitar que un objeto previo use esta textura
+		glBindTexture(GL_TEXTURE_2D, textureHighwayID);
+		esferaPrueba1.setPosition(glm::vec3(15.0, 1.0, -5.0)); //5 a la derecha, 1 arriba, 5 hacia atrás (z hacia nosotros es positivo)
+		esferaPrueba1.setScale(glm::vec3(2.5, 2.5, 2.5));
+		//esferaPrueba1.enableWireMode(); //Ponerlo en forma de malla
+		esferaPrueba1.render(); //Dibujar en pantalla
+
 		/*******************************************
 		 * Custom objects obj
 		 *******************************************/
@@ -840,10 +988,11 @@ void applicationLoop() {
 		modelAircraft.render(modelMatrixAircraft);
 
 		// Render for the eclipse car
-		glm::mat4 modelMatrixEclipseChasis = glm::mat4(modelMatrixEclipse);
+		glm::mat4 modelMatrixEclipseChasis = glm::mat4(modelMatrixEclipse); //Copia de la matriz padre para hacer transformaciones
 		modelMatrixEclipseChasis = glm::scale(modelMatrixEclipse, glm::vec3(0.5, 0.5, 0.5));
 		modelEclipseChasis.render(modelMatrixEclipseChasis);
 
+		//Llantas de enfrente
 		glm::mat4 modelMatrixFrontalWheels = glm::mat4(modelMatrixEclipseChasis);
 		modelMatrixFrontalWheels = glm::translate(modelMatrixFrontalWheels, glm::vec3(0.0, 1.05813, 4.11483 ));
 		modelMatrixFrontalWheels = glm::rotate(modelMatrixFrontalWheels, rotWheelsY, glm::vec3(0, 1, 0));
@@ -851,6 +1000,7 @@ void applicationLoop() {
 		modelMatrixFrontalWheels = glm::translate(modelMatrixFrontalWheels, glm::vec3(0.0, -1.05813, -4.11483));
 		modelEclipseFrontalWheels.render(modelMatrixFrontalWheels);
 
+		//Llantas de atrás
 		glm::mat4 modelMatrixRearWheels = glm::mat4(modelMatrixEclipseChasis);
 		modelMatrixRearWheels = glm::translate(modelMatrixRearWheels, glm::vec3(0.0, 1.05813, -4.35157 ));
 		modelMatrixRearWheels = glm::rotate(modelMatrixRearWheels, rotWheelsX, glm::vec3(1, 0, 0));
@@ -859,6 +1009,7 @@ void applicationLoop() {
 
 		// Helicopter
 		glm::mat4 modelMatrixHeliChasis = glm::mat4(modelMatrixHeli);
+		modelMatrixHeliChasis = glm::scale(modelMatrixHeliChasis, glm::vec3(0.5, 0.5, 0.5));
 		modelHeliChasis.render(modelMatrixHeliChasis);
 
 		glm::mat4 modelMatrixHeliHeli = glm::mat4(modelMatrixHeliChasis);
@@ -867,6 +1018,12 @@ void applicationLoop() {
 		modelMatrixHeliHeli = glm::translate(modelMatrixHeliHeli, glm::vec3(0.0, 0.0, 0.249548));
 		modelHeliHeli.render(modelMatrixHeliHeli);
 
+		glm::mat4 modelMatrixHeliHeli_2 = glm::mat4(modelMatrixHeliChasis);
+		modelMatrixHeliHeli_2 = glm::translate(modelMatrixHeliHeli_2, glm::vec3(0.0, 2.0907, -5.6495));
+		modelMatrixHeliHeli_2 = glm::rotate(modelMatrixHeliHeli_2, rotHelHelX_2,
+			glm::vec3(1.0, 0.0, 0.0)); //Rotación sobre eje X de la helice
+		modelHeliHeli_2.render(modelMatrixHeliHeli_2);
+
 		// Lambo car
 		glDisable(GL_CULL_FACE);
 		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
@@ -874,9 +1031,13 @@ void applicationLoop() {
 		modelLambo.render(modelMatrixLamboChasis);
 		glActiveTexture(GL_TEXTURE0);
 		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
+		//modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08676, 0.707316, 0.982601));
+		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor,
+			glm::vec3(1.07866, 0.69884, 0.976502));
 		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0, 0, 0));
-		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
+		//modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08676, -0.707316, -0.982601));
+		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor,
+			glm::vec3(-1.07866, -0.69884, -0.976502));
 		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
 		modelLamboRightDor.render(modelMatrixLamboChasis);
 		modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
@@ -934,6 +1095,59 @@ void applicationLoop() {
 		modelMatrixDartRightLeg = glm::rotate(modelMatrixDartRightLeg, rotDartRightLeg, glm::vec3(0, 0, 1));
 		modelMatrixDartRightLeg = glm::translate(modelMatrixDartRightLeg, glm::vec3(0, -1.12632, 0.423349));
 		modelDartLegoRightLeg.render(modelMatrixDartRightLeg);
+
+		/*********************************
+		**********************************
+		******* BUZZ YOGURTHLIGHT ********
+		**********************************
+		**********************************/
+
+
+		glm::mat4 modelMatrixBuzzBody = glm::mat4(modelMatrixBuzz); //Está asociado al torso xd
+		modelBuzzTorso.render(modelMatrixBuzzBody);
+		glm::mat4 modelMatrixBuzzHead = glm::mat4(modelMatrixBuzzBody);
+		modelBuzzHead.render(modelMatrixBuzzHead);
+		glm::mat4 modelMatrixBuzzHip = glm::mat4(modelMatrixBuzzBody);
+		modelBuzzHip.render(modelMatrixBuzzHip);
+
+		//Brazos
+		glm::mat4 modelMatrixBuzzLeftArm = glm::mat4(modelMatrixBuzzBody);
+		modelBuzzLeftArm.render(modelMatrixBuzzLeftArm);
+		glm::mat4 modelMatrixBuzzLeftForeArm = glm::mat4(modelMatrixBuzzLeftArm);
+		modelBuzzLeftForeArm.render(modelMatrixBuzzLeftForeArm);
+		glm::mat4 modelMatrixBuzzLeftHand = glm::mat4(modelMatrixBuzzLeftForeArm);
+		modelBuzzLeftHand.render(modelMatrixBuzzLeftHand);
+		glm::mat4 modelMatrixBuzzRightArm = glm::mat4(modelMatrixBuzzBody);
+		modelBuzzRightArm.render(modelMatrixBuzzRightArm);
+		glm::mat4 modelMatrixBuzzRightForeArm = glm::mat4(modelMatrixBuzzRightArm);
+		modelBuzzRightForeArm.render(modelMatrixBuzzRightForeArm);
+		glm::mat4 modelMatrixBuzzRightHand = glm::mat4(modelMatrixBuzzRightForeArm);
+		modelBuzzRightHand.render(modelMatrixBuzzRightHand);
+
+		//Piernas
+		glm::mat4 modelMatrixBuzzLeftLeg = glm::mat4(modelMatrixBuzzHip);
+		modelBuzzLeftLeg.render(modelMatrixBuzzLeftLeg);
+		glm::mat4 modelMatrixBuzzLeftCalf = glm::mat4(modelMatrixBuzzLeftLeg);
+		modelBuzzLeftCalf.render(modelMatrixBuzzLeftCalf);
+		glm::mat4 modelMatrixBuzzLeftFoot = glm::mat4(modelMatrixBuzzLeftCalf);
+		modelBuzzLeftFoot.render(modelMatrixBuzzLeftFoot);
+		glm::mat4 modelMatrixBuzzRightLeg = glm::mat4(modelMatrixBuzzHip);
+		modelBuzzRightLeg.render(modelMatrixBuzzRightLeg);
+		glm::mat4 modelMatrixBuzzRightCalf = glm::mat4(modelMatrixBuzzRightLeg);
+		modelBuzzRightCalf.render(modelMatrixBuzzRightCalf);
+		glm::mat4 modelMatrixBuzzRightFoot = glm::mat4(modelMatrixBuzzRightCalf);
+		modelBuzzRightFoot.render(modelMatrixBuzzRightFoot);
+
+		//Alas
+		glm::mat4 modelMatrixBuzzLeftWing1 = glm::mat4(modelMatrixBuzzBody);
+		modelBuzzLeftWing1.render(modelMatrixBuzzLeftWing1);
+		glm::mat4 modelMatrixBuzzLeftWing2 = glm::mat4(modelMatrixBuzzLeftWing1);
+		modelBuzzLeftWing2.render(modelMatrixBuzzLeftWing2);
+		glm::mat4 modelMatrixBuzzRightWing1 = glm::mat4(modelMatrixBuzzBody);
+		modelBuzzRightWing1.render(modelMatrixBuzzRightWing1);
+		glm::mat4 modelMatrixBuzzRightWing2 = glm::mat4(modelMatrixBuzzRightWing1);
+		modelBuzzRightWing2.render(modelMatrixBuzzRightWing2);
+
 		// Se regresa el cull faces IMPORTANTE para la capa
 		glEnable(GL_CULL_FACE);
 
@@ -953,8 +1167,135 @@ void applicationLoop() {
 		glCullFace(oldCullFaceMode);
 		glDepthFunc(oldDepthFuncMode);
 
+		//Para salvar los keyframes
+		if (record && modelSelected == 1) {
+			matrixDartJoints.push_back(rotDartHead);
+			matrixDartJoints.push_back(rotDartLeftArm);
+			matrixDartJoints.push_back(rotDartLeftHand);
+			matrixDartJoints.push_back(rotDartRightArm);
+			matrixDartJoints.push_back(rotDartRightHand);
+			matrixDartJoints.push_back(rotDartLeftLeg);
+			matrixDartJoints.push_back(rotDartRightLeg);
+			if (saveFrame) {
+				saveFrame = false;
+				appendFrame(myfile, matrixDartJoints);
+			}
+		}
+		else if (keyFramesDartJoints.size() > 0) {
+			interpolationDartJoints = numPasosDartJoints / (float)maxNumPasosDartJoints;
+			numPasosDartJoints++;
+			if (interpolationDartJoints > 1.0) {
+				indexFrameDartJoints = indexFrameDartJointsNext;
+				indexFrameDartJointsNext++;
+				numPasosDartJoints = 0.0;
+			}
+			if (indexFrameDartJointsNext > keyFramesDartJoints.size() - 1)
+				indexFrameDartJointsNext = 0;
+			rotDartHead = interpolate(keyFramesDartJoints,indexFrameDartJoints,
+				indexFrameDartJointsNext, 0, interpolationDartJoints);
+			rotDartLeftArm = interpolate(keyFramesDartJoints, indexFrameDartJoints,
+				indexFrameDartJointsNext, 1, interpolationDartJoints);
+			rotDartLeftHand = interpolate(keyFramesDartJoints, indexFrameDartJoints,
+				indexFrameDartJointsNext, 2, interpolationDartJoints);
+			rotDartRightArm = interpolate(keyFramesDartJoints, indexFrameDartJoints,
+				indexFrameDartJointsNext, 3, interpolationDartJoints);
+			rotDartRightHand = interpolate(keyFramesDartJoints, indexFrameDartJoints,
+				indexFrameDartJointsNext, 4, interpolationDartJoints);
+			rotDartLeftLeg = interpolate(keyFramesDartJoints, indexFrameDartJoints,
+				indexFrameDartJointsNext, 5, interpolationDartJoints);
+			rotDartRightLeg = interpolate(keyFramesDartJoints, indexFrameDartJoints,
+				indexFrameDartJointsNext, 6, interpolationDartJoints);
+		}
+
+		if (record && modelSelected == 2) {
+			matrixDart.push_back(modelMatrixDart);
+			if (saveFrame) {
+				saveFrame = false;
+				appendFrame(myfile, matrixDart);
+			}
+		}
+		else if (keyFramesDart.size() > 0) {
+			interpolationDart = numPasosDart / (float)maxNumPasosDart;
+			numPasosDart++;
+			if (interpolationDart > 1.0) {
+				interpolationDart = 0.0;
+				numPasosDart = 0;
+				indexFrameDart = indexFrameDartNext;
+				indexFrameDartNext++;
+			}
+			if (indexFrameDartNext > keyFramesDart.size() - 1)
+				indexFrameDartNext = 0;
+			modelMatrixDart = interpolate(keyFramesDart, indexFrameDart, indexFrameDartNext, 0, interpolationDart);
+		}
+
 		// Constantes de animaciones
-		rotHelHelY += 0.5;
+		rotHelHelY += 0.05; //Giro de la hélice del helicóptero
+		rotHelHelX_2 += 0.08;
+
+		/*********************
+		* Máquinas de estados
+		**********************/
+		//Para eclipse
+		switch (state) {
+			case 0:
+				if (numberAdvance == 0)
+					maxAdvance = 64.0f;
+				else if (numberAdvance == 1)
+					maxAdvance = 49.0f;
+				else if (numberAdvance == 2)
+					maxAdvance = 45.0f;
+				else if (numberAdvance == 3)
+					maxAdvance = 49.0f;
+				else if (numberAdvance == 4)
+					maxAdvance = 45.0f;
+				state = 1;
+				break;
+			case 1:
+				modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(0.0, 0.0, 0.1));
+				advanceCount += 0.1;
+				rotWheelsX += 0.05;
+				rotWheelsY -= 0.02;
+				if (rotWheelsY < 0)
+					rotWheelsY = 0.0;
+				if (advanceCount > maxAdvance) {
+					advanceCount = 0.0;
+					state = 2;
+				}
+				break;
+			case 2:
+				modelMatrixEclipse = glm::translate(modelMatrixEclipse, glm::vec3(0.0, 0.0, 0.025));
+				modelMatrixEclipse = glm::rotate(modelMatrixEclipse, glm::radians(0.5f), glm::vec3(0, 1, 0)); //La rotación se hace primero por jerarquía
+				rotCount += 0.5f;
+				rotWheelsX += 0.05;
+				rotWheelsY += 0.01;
+				if (rotWheelsY > 0.1f)
+					rotWheelsY = 0.1f;
+				if (rotCount >= 90.0f) {
+					rotCount = 0.0f;
+					numberAdvance++;
+					if (numberAdvance > 4)
+						numberAdvance = 1;
+					state = 0;
+				}
+				break;
+			default:
+				break;
+		}
+
+		switch (stateDoor)
+		{
+		case 0:
+			dorRotCount += 0.2;
+			if (dorRotCount > 75.0f)
+				stateDoor = 1;
+			break;
+		case 1:
+			dorRotCount -= 0.2;
+			if (dorRotCount < 0.0)
+				stateDoor = 0;
+		default:
+			break;
+		}
 
 		glfwSwapBuffers(window);
 	}
