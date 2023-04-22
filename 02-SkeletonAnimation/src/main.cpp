@@ -1,3 +1,7 @@
+//Cuaternión: Representación de una matriz de rotación (giro) con 3 complejos y un real (este último es la magnitud de giro)
+//En ocasiones ayuda para hacer equivalencias y ahorrarse operaciones entre matrices
+//Necesitamos un eje de giro y un ángulo de giro
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 //glew include
@@ -84,6 +88,19 @@ Model modelDartLegoRightLeg;
 // Mayow
 Model mayowModelAnimate;
 
+//Cowboy
+Model cowboyModelAnimate;
+
+//Guardian
+Model guardianModelAnimate;
+
+//Cyborg
+Model cyborgModelAnimate;
+
+//Robot
+Model robotModelAnimate;
+
+
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
 
@@ -95,12 +112,12 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
+std::string fileNames[6] = { "../Textures/stormydays/stormydays_ft.tga",
+		"../Textures/stormydays/stormydays_bk.tga",
+		"../Textures/stormydays/stormydays_up.tga",
+		"../Textures/stormydays/stormydays_dn.tga",
+		"../Textures/stormydays/stormydays_rt.tga",
+		"../Textures/stormydays/stormydays_lf.tga" };
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -114,8 +131,13 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
+glm::mat4 modelMatrixGuardian = glm::mat4(1.0f);
+glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
+glm::mat4 modelMatrixRobot = glm::mat4(1.0f);
 
-float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
+float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0;
+float rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 int modelSelected = 0;
 bool enableCountSelected = true;
 
@@ -148,6 +170,10 @@ float dorRotCount = 0.0;
 
 double deltaTime;
 double currTime, lastTime;
+
+//Variables para animación en robot
+int robotAnimationIndex = 0;
+float robotX = 20.0f, robotY = 0.02f, robotZ = -5.0f;
 
 // Se definen todos las funciones.
 void reshapeCallback(GLFWwindow *Window, int widthRes, int heightRes);
@@ -291,6 +317,20 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	//Mayow
 	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
 	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	//Cowboy
+	cowboyModelAnimate.loadModel("../models/cowboy/Character Running.fbx");
+	cowboyModelAnimate.setShader(&shaderMulLighting);
+	//Guardian
+	guardianModelAnimate.loadModel("../models/boblampclean/boblampclean.md5mesh");
+	guardianModelAnimate.setShader(&shaderMulLighting);
+	//Cyborg
+	cyborgModelAnimate.loadModel("../models/cyborg/cyborg/Cyborg-2023-2-v2-fracaso.fbx");
+	cyborgModelAnimate.setShader(&shaderMulLighting);
+
+	//Robot
+	robotModelAnimate.loadModel("../models/Robot/robi.fbx");
+	robotModelAnimate.setShader(&shaderMulLighting);
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
@@ -529,6 +569,8 @@ void destroy() {
 
 	// Custom objects animate
 	mayowModelAnimate.destroy();
+	cyborgModelAnimate.destroy();
+	robotModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -692,6 +734,24 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixDart = glm::translate(modelMatrixDart, glm::vec3(0.02, 0.0, 0.0));
 
+	//Modelo robot
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
+		modelMatrixRobot = glm::rotate(modelMatrixRobot, 0.02f, glm::vec3(0, 1, 0));
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+		modelMatrixRobot = glm::rotate(modelMatrixRobot, -0.02f, glm::vec3(0, 1, 0));
+
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+		modelMatrixRobot = glm::translate(modelMatrixRobot, glm::vec3(0.02, 0.0, 0.0));
+		robotAnimationIndex = 1;
+	}
+	else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+		modelMatrixRobot = glm::translate(modelMatrixRobot, glm::vec3(-0.02, 0.0, 0.0));
+		robotAnimationIndex = 1;
+	}
+	if (modelSelected == 0 && (glfwGetKey(window, GLFW_KEY_UP) == GLFW_RELEASE && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_RELEASE)) {
+		robotAnimationIndex = 0;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -721,6 +781,17 @@ void applicationLoop() {
 
 	modelMatrixMayow = glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
 	modelMatrixMayow = glm::rotate(modelMatrixMayow, glm::radians(-90.0f), glm::vec3(0, 1, 0));
+
+
+	modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(5.0f, 0.05f, -10.0f));
+	modelMatrixCowboy = glm::scale(modelMatrixCowboy, glm::vec3(0.005f));
+
+	modelMatrixGuardian = glm::translate(modelMatrixGuardian, glm::vec3(10.0f, 0.05f, -10.0f));
+	modelMatrixGuardian = glm::rotate(modelMatrixGuardian, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	modelMatrixGuardian = glm::scale(modelMatrixGuardian, glm::vec3(0.05f));
+
+	modelMatrixCyborg = glm::translate(modelMatrixCyborg, glm::vec3(15.0f, 0.05f, -10.0f));
+	modelMatrixCyborg = glm::scale(modelMatrixCyborg, glm::vec3(0.005f));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -996,8 +1067,18 @@ void applicationLoop() {
 		 *******************************************/
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021, 0.021, 0.021));
-		mayowModelAnimate.setAnimationIndex(0);
+		mayowModelAnimate.setAnimationIndex(2);
 		mayowModelAnimate.render(modelMatrixMayowBody);
+
+		cowboyModelAnimate.render(modelMatrixCowboy);
+		guardianModelAnimate.render(modelMatrixGuardian);
+		cyborgModelAnimate.render(modelMatrixCyborg);
+
+		glm::mat4 modelMatrixRobotBody = glm::mat4(modelMatrixRobot);
+		modelMatrixRobotBody = glm::translate(modelMatrixRobotBody, glm::vec3(0.0f, 0.05f, 0.0f));
+		modelMatrixRobotBody = glm::scale(modelMatrixRobotBody, glm::vec3(0.0008f));
+		robotModelAnimate.setAnimationIndex(robotAnimationIndex);
+		robotModelAnimate.render(modelMatrixRobotBody);
 
 		/*******************************************
 		 * Skybox
