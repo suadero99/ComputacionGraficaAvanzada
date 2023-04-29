@@ -1005,6 +1005,33 @@ void applicationLoop() {
 			shaderTerrain.setFloat("pointLights[" + std::to_string(i + lamp1Position.size()) + "].quadratic", 0.02f);
 		}
 
+		//Spotlights
+		glm::vec3 lampSpotPosition = glm::vec3(modelMatrixHeli[3]);
+		shaderMulLighting.setInt("spotLightCount", 1); //int spotlightcount
+		shaderTerrain.setInt("spotLightCount", 1); //int spotlightcount
+
+		shaderMulLighting.setVectorFloat3("spotLights[0].position", glm::value_ptr(lampSpotPosition));
+		shaderMulLighting.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0))); //Paralelo al eje Y, pero en sentido inverso
+		shaderMulLighting.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+		shaderMulLighting.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+		shaderMulLighting.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
+		shaderMulLighting.setFloat("spotLights[0].constant", 1.0f);
+		shaderMulLighting.setFloat("spotLights[0].linear", 0.09f);
+		shaderMulLighting.setFloat("spotLights[0].quadratic", 0.02f);
+		shaderMulLighting.setFloat("spotLights[0].cutOff", cos(glm::radians(5.0f))); //Apertura
+		shaderMulLighting.setFloat("spotLights[0].outerCutOff", cos(glm::radians(25.0f))); //Cierre
+
+		shaderTerrain.setVectorFloat3("spotLights[0].position", glm::value_ptr(lampSpotPosition));
+		shaderTerrain.setVectorFloat3("spotLights[0].direction", glm::value_ptr(glm::vec3(0, -1, 0))); //Paralelo al eje Y, pero en sentido inverso
+		shaderTerrain.setVectorFloat3("spotLights[0].light.ambient", glm::value_ptr(glm::vec3(0.2, 0.16, 0.01)));
+		shaderTerrain.setVectorFloat3("spotLights[0].light.diffuse", glm::value_ptr(glm::vec3(0.4, 0.32, 0.02)));
+		shaderTerrain.setVectorFloat3("spotLights[0].light.specular", glm::value_ptr(glm::vec3(0.6, 0.58, 0.03)));
+		shaderTerrain.setFloat("spotLights[0].constant", 1.0f);
+		shaderTerrain.setFloat("spotLights[0].linear", 0.09f);
+		shaderTerrain.setFloat("spotLights[0].quadratic", 0.02f);
+		shaderTerrain.setFloat("spotLights[0].cutOff", cos(glm::radians(5.0f))); //Apertura
+		shaderTerrain.setFloat("spotLights[0].outerCutOff", cos(glm::radians(25.0f))); //Cierre
+
 		/*******************************************
 		 * Terrain Cesped
 		 *******************************************/
